@@ -109,7 +109,7 @@ const LandingPage = ({ onLogin, onSignup }) => {
         </div>
       </nav>
 
-      {/* Hero Section - Classical Design with improved visibility */}
+      {/* Hero Section - Classical Design */}
       <section className="relative py-20 lg:py-32 bg-gradient-to-br from-emerald-50 via-white to-teal-50 overflow-hidden">
         {/* Subtle background decoration */}
         <div className="absolute inset-0 overflow-hidden">
