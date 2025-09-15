@@ -10,7 +10,7 @@ const errorHandler = require('./backend/middleware/errorHandler');
 const { apiLimiter } = require('./backend/middleware/rateLimiter');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 // Connect to MongoDB
 connectDB();
