@@ -17,9 +17,29 @@ connectDB();
 
 // CORS configuration for production and development
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.CORS_ORIGIN || 'https://your-frontend-url.onrender.com'
-    : ['http://localhost:5173', 'http://localhost:3000'],
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://trackmint2-main-main-1.onrender.com',
+      'https://trackmint2-main-main.onrender.com'
+    ];
+    
+    // Add custom CORS origin from environment variable
+    if (process.env.CORS_ORIGIN) {
+      allowedOrigins.push(process.env.CORS_ORIGIN);
+    }
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
