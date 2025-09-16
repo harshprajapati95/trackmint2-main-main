@@ -49,7 +49,10 @@ app.get('/health', (req, res) => {
 });
 
 // Serve static files from the frontend dist directory in production
-if (process.env.NODE_ENV === 'production') {
+// Note: For separate deployments, this section is not needed
+// The frontend will be deployed as a separate static site
+if (process.env.NODE_ENV === 'production' && process.env.SERVE_FRONTEND === 'true') {
+  // Only serve frontend if explicitly enabled
   app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
 
   // Handle React Router - send all non-API requests to index.html
@@ -65,13 +68,14 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html'));
   });
 } else {
-  // Development mode - just serve API
+  // API-only mode (default for separate deployments)
   app.get('/', (req, res) => {
     res.json({
       success: true,
-      message: 'TrackMint API Server is running in development mode',
-      docs: '/api/health',
-      frontend: 'Run `cd frontend && npm run dev` to start frontend development server'
+      message: 'TrackMint API Server is running',
+      environment: process.env.NODE_ENV || 'development',
+      health: '/health',
+      api: '/api/*'
     });
   });
 }
