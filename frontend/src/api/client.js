@@ -4,8 +4,8 @@ import axios from 'axios';
 const getApiUrl = () => {
   // Check if we're in production (deployed)
   if (import.meta.env.PROD) {
-    // Production - use environment variable or default backend URL
-    return import.meta.env.VITE_API_URL || 'https://trackmint-backend.onrender.com/api';
+    // Production - use your deployed backend URL
+    return import.meta.env.VITE_API_URL || 'https://trackmint2-main-main.onrender.com/api';
   }
   
   // Development - use localhost with port 3000 (backend port)
