@@ -1,15 +1,57 @@
 import axios from 'axios';
 
 // Create axios instance with base configuration
-const baseURL = import.meta.env.VITE_API_URL || (
-  import.meta.env.DEV ? 'http://localhost:3000/api' : '/api'
-);
+const getBaseURL = () => {
+  // Production hosting environments
+  if (import.meta.env.PROD) {
+    // Always use environment variable in production
+    if (import.meta.env.VITE_API_URL) {
+      return import.meta.env.VITE_API_URL;
+    }
+    
+    // Fallback detection for various hosting platforms
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      
+      // GitHub Codespaces
+      if (hostname.includes('github.dev') || hostname.includes('githubpreview.dev')) {
+        return `https://${hostname.replace('5173', '3000')}/api`;
+      }
+      
+      // Render Static Site
+      if (hostname.includes('onrender.com')) {
+        // This should be set via environment variable VITE_API_URL
+        return 'https://your-backend-service.onrender.com/api';
+      }
+      
+      // GitHub Pages
+      if (hostname.includes('github.io')) {
+        return 'https://your-backend-service.onrender.com/api';
+      }
+      
+      // Netlify, Vercel
+      if (hostname.includes('netlify.app') || hostname.includes('vercel.app')) {
+        return 'https://your-backend-service.onrender.com/api';
+      }
+    }
+    
+    // Default production fallback
+    return '/api';
+  }
+  
+  // Development mode
+  return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+};
+
+const baseURL = getBaseURL();
 
 console.log('🌐 API Base URL:', baseURL);
-console.log('🔧 Environment Variables:', {
+console.log('🔧 Environment Info:', {
   VITE_API_URL: import.meta.env.VITE_API_URL,
   DEV: import.meta.env.DEV,
-  MODE: import.meta.env.MODE
+  PROD: import.meta.env.PROD,
+  MODE: import.meta.env.MODE,
+  hostname: typeof window !== 'undefined' ? window.location.hostname : 'server-side'
 });
 
 const api = axios.create({

@@ -18,7 +18,7 @@ connectDB();
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-domain.com'] // Add your production domain
+    ? (process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : ['https://trackmint-frontend.onrender.com']) // Update with your Render frontend URL
     : true, // Allow all origins in development
   credentials: true
 }));
@@ -33,9 +33,9 @@ app.use('/api', apiLimiter);
 // API Routes
 app.use('/api', routes);
 
-// Serve static files from the dist directory in production
+// Serve static files from the frontend dist directory in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'dist')));
+  app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
 
   // Handle React Router - send all non-API requests to index.html
   app.get('*', (req, res) => {
@@ -47,7 +47,7 @@ if (process.env.NODE_ENV === 'production') {
       });
     }
     
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'));
   });
 } else {
   // Development mode - just serve API
@@ -55,7 +55,8 @@ if (process.env.NODE_ENV === 'production') {
     res.json({
       success: true,
       message: 'TrackMint API Server is running in development mode',
-      docs: '/api/health'
+      docs: '/api/health',
+      frontend: 'Run `cd frontend && npm run dev` to start frontend development server'
     });
   });
 }
