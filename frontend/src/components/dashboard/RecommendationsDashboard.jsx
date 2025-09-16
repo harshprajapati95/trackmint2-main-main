@@ -1,11 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, BarChart3, Target, ArrowRight, ExternalLink, Plus } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { TrendingUp, TrendingDown, BarChart3, Target, ArrowRight, ExternalLink, Plus, ChevronDown } from 'lucide-react';
 import { generateRecommendations, calculateBudgetAllocation } from '../../context/WizardContext';
 import { useBudget } from '../../context/BudgetContext';
 
 const RecommendationsDashboard = ({ userData }) => {
   const [activeTab, setActiveTab] = useState('stocks');
   const [recommendations, setRecommendations] = useState(null);
+  const [showPlatformDropdown, setShowPlatformDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Investment platforms data with actual logos
+  const investmentPlatforms = [
+    {
+      name: 'Upstox',
+      url: 'https://upstox.com/',
+      logo: 'https://assets.upstox.com/website/images/upstox-new-logo.svg',
+      description: 'Zero brokerage trading',
+      bgColor: 'bg-orange-50',
+      textColor: 'text-orange-600'
+    },
+    {
+      name: 'Zerodha',
+      url: 'https://zerodha.com/',
+      logo: 'https://zerodha.com/static/images/logo.svg',
+      description: 'India\'s largest stockbroker',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-600'
+    },
+    {
+      name: 'Groww',
+      url: 'https://groww.in/',
+      logo: 'https://resources.groww.in/web-assets/img/website-logo/groww_logo.webp',
+      description: 'Simple investing platform',
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-600'
+    },
+    {
+      name: 'Angel One',
+      url: 'https://www.angelone.in/',
+      logo: 'https://assets.angelone.in/images/brand-logo/android-chrome-192x192.png',
+      description: 'Advanced trading platform',
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-600'
+    }
+  ];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowPlatformDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const loadRecommendations = async () => {
@@ -155,13 +205,71 @@ const RecommendationsDashboard = ({ userData }) => {
 
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        {/* <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Investment Recommendations
-        </h1>
-        <p className="text-slate-600">
-          Personalized investment suggestions based on your {userData?.riskAppetite?.toLowerCase() || 'balanced'} risk profile
-        </p> */}
+      {/* Investment Platforms Dropdown - Top Left */}
+      <div className="flex justify-start">
+        <div className="relative" ref={dropdownRef}>
+          <button 
+            onClick={() => setShowPlatformDropdown(!showPlatformDropdown)}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center gap-2 shadow-lg"
+            title="Investment Platforms"
+          >
+            <span className="font-medium">Start Investing</span>
+            <ChevronDown size={18} className={`transform transition-transform duration-200 ${showPlatformDropdown ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {/* Dropdown */}
+          {showPlatformDropdown && (
+            <div className="absolute left-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
+                <h4 className="font-bold text-gray-800 text-lg">Investment Platforms</h4>
+                <p className="text-sm text-gray-600">Popular trading platforms to start your journey</p>
+              </div>
+              <div className="py-2">
+                {investmentPlatforms.map((platform, index) => (
+                  <a
+                    key={index}
+                    href={platform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-all duration-200 group border-l-4 border-transparent hover:border-blue-400"
+                    onClick={() => setShowPlatformDropdown(false)}
+                  >
+                    <div className={`w-12 h-12 ${platform.bgColor} rounded-xl p-2 flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                      <img 
+                        src={platform.logo} 
+                        alt={`${platform.name} logo`}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'block';
+                        }}
+                      />
+                      <div className="hidden text-2xl">
+                        {platform.name === 'Upstox' ? '🚀' : 
+                         platform.name === 'Zerodha' ? '⚡' : 
+                         platform.name === 'Groww' ? '🌱' : '👼'}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className={`font-bold text-gray-800 text-base group-hover:${platform.textColor} transition-colors duration-200`}>
+                        {platform.name}
+                      </div>
+                      <div className="text-sm text-gray-500 group-hover:text-gray-600 transition-colors duration-200">
+                        {platform.description}
+                      </div>
+                    </div>
+                    <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-600 transition-colors duration-200" />
+                  </a>
+                ))}
+              </div>
+              <div className="p-3 bg-gray-50 border-t border-gray-100">
+                <p className="text-xs text-gray-500 text-center">
+                  Click on any platform to start your investment journey
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Risk Profile Summary */}

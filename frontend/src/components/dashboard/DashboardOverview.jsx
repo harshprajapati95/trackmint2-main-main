@@ -1,15 +1,66 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { DollarSign, TrendingUp, TrendingDown, Target, ArrowUp, ArrowDown, Wallet, Receipt } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Target, ArrowUp, ArrowDown, Wallet, Receipt, ChevronDown, ExternalLink } from 'lucide-react';
 import { calculateBudgetAllocation } from '../../context/WizardContext';
 import { colors } from '../../constants/theme';
 
 const DashboardOverview = ({ userData, onTabChange }) => {
+  const [showPlatformDropdown, setShowPlatformDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowPlatformDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
   const budgetAllocation = calculateBudgetAllocation(
     userData.income,
     userData.budgetRule,
     userData.customBudget
   );
+
+  // Investment platforms data
+  const investmentPlatforms = [
+    {
+      name: 'Upstox',
+      url: 'https://upstox.com/',
+      logo: 'https://assets.upstox.com/website/images/upstox-new-logo.svg',
+      description: 'Zero brokerage trading',
+      bgColor: 'bg-orange-50',
+      textColor: 'text-orange-600'
+    },
+    {
+      name: 'Zerodha',
+      url: 'https://zerodha.com/',
+      logo: 'https://zerodha.com/static/images/logo.svg',
+      description: 'India\'s largest stockbroker',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-600'
+    },
+    {
+      name: 'Groww',
+      url: 'https://groww.in/',
+      logo: 'https://resources.groww.in/web-assets/img/website-logo/groww_logo.webp',
+      description: 'Simple investing platform',
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-600'
+    },
+    {
+      name: 'Angel One',
+      url: 'https://www.angelone.in/',
+      logo: 'https://assets.angelone.in/images/brand-logo/android-chrome-192x192.png',
+      description: 'Advanced trading platform',
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-600'
+    }
+  ];
 
   // Calculate dynamic values based on user data
   const monthlyIncome = userData.income?.monthly || 50000;
@@ -207,12 +258,71 @@ const DashboardOverview = ({ userData, onTabChange }) => {
             <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-0.5 sm:mb-1">📊 Investment Recommendations</h3>
             <p className="text-xs sm:text-sm text-slate-600">Based on your {userData?.riskAppetite?.toLowerCase() || 'balanced'} risk profile</p>
           </div>
-          <button 
-            onClick={() => onTabChange?.('recommendations')}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 mt-1 sm:mt-0"
-          >
-            View All →
-          </button>
+          <div className="flex items-center gap-2 relative">
+            <button 
+              onClick={() => onTabChange?.('recommendations')}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+            >
+              View All →
+            </button>
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setShowPlatformDropdown(!showPlatformDropdown)}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-1.5 sm:p-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center"
+                title="Investment Platforms"
+              >
+                <ChevronDown size={16} className={`transform transition-transform duration-200 ${showPlatformDropdown ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {/* Dropdown */}
+              {showPlatformDropdown && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+                  <div className="p-3 border-b border-gray-100">
+                    <h4 className="font-semibold text-gray-800 text-sm">Investment Platforms</h4>
+                    <p className="text-xs text-gray-600">Popular trading platforms</p>
+                  </div>
+                  <div className="py-2">
+                    {investmentPlatforms.map((platform, index) => (
+                      <a
+                        key={index}
+                        href={platform.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors duration-150 group"
+                        onClick={() => setShowPlatformDropdown(false)}
+                      >
+                        <div className={`w-10 h-10 ${platform.bgColor} rounded-lg p-2 flex items-center justify-center group-hover:scale-105 transition-transform duration-150`}>
+                          <img 
+                            src={platform.logo} 
+                            alt={`${platform.name} logo`}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'block';
+                            }}
+                          />
+                          <div className="hidden text-lg">
+                            {platform.name === 'Upstox' ? '🚀' : 
+                             platform.name === 'Zerodha' ? '⚡' : 
+                             platform.name === 'Groww' ? '🌱' : '👼'}
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <div className={`font-medium text-gray-800 text-sm group-hover:${platform.textColor} transition-colors`}>
+                            {platform.name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {platform.description}
+                          </div>
+                        </div>
+                        <ExternalLink size={14} className="text-gray-400 group-hover:text-blue-600 transition-colors" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
