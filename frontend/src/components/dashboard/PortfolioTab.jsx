@@ -2,6 +2,7 @@
 import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, DollarSign, PieChart, BarChart } from 'lucide-react';
 import { fetchStockQuote } from '../../api/finnhub';
 import { portfolioAPI } from '../../api/client';
+import { calculateBudgetAllocation } from '../../context/WizardContext';
 
 const PortfolioTab = ({ userData }) => {
   const [investments, setInvestments] = useState([]);
@@ -19,6 +20,14 @@ const PortfolioTab = ({ userData }) => {
     currentPrice: '',
     date: new Date().toISOString().split('T')[0]
   });
+
+  // Calculate budget allocation to get savings amount
+  const budgetAllocation = calculateBudgetAllocation(
+    userData.income,
+    userData.budgetRule,
+    userData.customBudget
+  );
+  const totalSavingsAmount = budgetAllocation.savings;
 
   useEffect(() => {
     fetchPortfolio();
@@ -114,7 +123,7 @@ const PortfolioTab = ({ userData }) => {
     const investmentAmount = quantity * buyPrice;
     
     // Check if user has enough savings budget for new investments
-    const availableSavings = (userData?.savingsAmount || 0) - portfolioMetrics.totalInvested;
+    const availableSavings = totalSavingsAmount - portfolioMetrics.totalInvested;
     const isNewInvestment = !editingInvestment;
     
     if (isNewInvestment && investmentAmount > availableSavings) {
@@ -212,9 +221,13 @@ const PortfolioTab = ({ userData }) => {
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
+              <span className="text-slate-600">Total Budget</span>
+              <span className="font-semibold text-slate-800">₹{totalSavingsAmount.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-sm">
               <span className="text-slate-600">Available</span>
-              <span className={`font-semibold ${(userData?.savingsAmount || 0) - portfolioMetrics.totalInvested >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                ₹{((userData?.savingsAmount || 0) - portfolioMetrics.totalInvested).toLocaleString()}
+              <span className={`font-semibold ${totalSavingsAmount - portfolioMetrics.totalInvested >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                ₹{(totalSavingsAmount - portfolioMetrics.totalInvested).toLocaleString()}
               </span>
             </div>
             <div className="flex justify-between text-sm">

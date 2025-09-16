@@ -16,19 +16,26 @@ const DashboardOverview = ({ userData, onTabChange }) => {
   const currentDate = new Date();
   const currentMonthIndex = currentDate.getMonth();
   
-  // Calculate realistic expenses based on user's budget allocation
+  // Use actual user expenses if available, otherwise use budget allocation as baseline
   const calculateExpenses = () => {
     const needsAmount = budgetAllocation.needs;
     const wantsAmount = budgetAllocation.wants;
     const savingsAmount = budgetAllocation.savings;
     
-    // Add some realistic variation (±10%)
-    const variation = () => 0.9 + (Math.random() * 0.2);
+    // If user has actual expense data, use it; otherwise use budget allocation
+    if (userData.expenses && userData.expenses.totalNeeds !== undefined && userData.expenses.totalWants !== undefined) {
+      return {
+        needs: userData.expenses.totalNeeds || 0,
+        wants: userData.expenses.totalWants || 0,
+        savings: savingsAmount // Keep savings from budget allocation
+      };
+    }
     
+    // Fallback to budget allocation without random variation
     return {
-      needs: Math.round(needsAmount * variation()),
-      wants: Math.round(wantsAmount * variation()),
-      savings: Math.round(savingsAmount * variation())
+      needs: Math.round(needsAmount * 0.85), // Assume 85% of budget is typically used
+      wants: Math.round(wantsAmount * 0.75), // Assume 75% of wants budget is used
+      savings: Math.round(savingsAmount) // Full savings amount
     };
   };
 
@@ -42,11 +49,11 @@ const DashboardOverview = ({ userData, onTabChange }) => {
   
   // Mock data for charts with more realistic values
   const monthlyExpenses = [
-    { month: 'Jan', needs: budgetAllocation.needs * 0.95, wants: budgetAllocation.wants * 1.1, savings: budgetAllocation.savings * 1.0 },
-    { month: 'Feb', needs: budgetAllocation.needs * 0.92, wants: budgetAllocation.wants * 1.05, savings: budgetAllocation.savings * 1.0 },
-    { month: 'Mar', needs: budgetAllocation.needs * 1.04, wants: budgetAllocation.wants * 0.85, savings: budgetAllocation.savings * 1.0 },
-    { month: 'Apr', needs: budgetAllocation.needs * 0.96, wants: budgetAllocation.wants * 0.95, savings: budgetAllocation.savings * 1.0 },
-    { month: 'May', needs: budgetAllocation.needs * 0.88, wants: budgetAllocation.wants * 1.15, savings: budgetAllocation.savings * 1.0 },
+    { month: 'Jan', needs: budgetAllocation.needs * 0.95, wants: budgetAllocation.wants * 1.1, savings: budgetAllocation.savings },
+    { month: 'Feb', needs: budgetAllocation.needs * 0.92, wants: budgetAllocation.wants * 1.05, savings: budgetAllocation.savings },
+    { month: 'Mar', needs: budgetAllocation.needs * 1.04, wants: budgetAllocation.wants * 0.85, savings: budgetAllocation.savings },
+    { month: 'Apr', needs: budgetAllocation.needs * 0.96, wants: budgetAllocation.wants * 0.95, savings: budgetAllocation.savings },
+    { month: 'May', needs: budgetAllocation.needs * 0.88, wants: budgetAllocation.wants * 1.15, savings: budgetAllocation.savings },
     { month: 'Jun', needs: currentExpenses.needs, wants: currentExpenses.wants, savings: currentExpenses.savings },
   ];
 
@@ -72,7 +79,8 @@ const DashboardOverview = ({ userData, onTabChange }) => {
   const portfolioChange = ((currentPortfolio.value - previousPortfolio.value) / previousPortfolio.value * 100);
 
   const totalExpenses = currentMonth.needs + currentMonth.wants;
-  const budgetUtilization = (totalExpenses / (budgetAllocation.needs + budgetAllocation.wants)) * 100;
+  const totalBudget = budgetAllocation.needs + budgetAllocation.wants;
+  const budgetUtilization = totalBudget > 0 ? (totalExpenses / totalBudget) * 100 : 0;
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
