@@ -2,14 +2,14 @@ import axios from 'axios';
 
 // Create axios instance with base configuration
 const getBaseURL = () => {
+  // Always prioritize environment variable
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
   // Production hosting environments
   if (import.meta.env.PROD) {
-    // Always use environment variable in production
-    if (import.meta.env.VITE_API_URL) {
-      return import.meta.env.VITE_API_URL;
-    }
-    
-    // Fallback detection for various hosting platforms
+    // Fallback detection for various hosting platforms (only if window exists)
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
       
@@ -20,39 +20,41 @@ const getBaseURL = () => {
       
       // Render Static Site
       if (hostname.includes('onrender.com')) {
-        // This should be set via environment variable VITE_API_URL
-        return 'https://your-backend-service.onrender.com/api';
+        return 'https://trackmint.onrender.com/api';
       }
       
       // GitHub Pages
       if (hostname.includes('github.io')) {
-        return 'https://your-backend-service.onrender.com/api';
+        return 'https://trackmint.onrender.com/api';
       }
       
       // Netlify, Vercel
       if (hostname.includes('netlify.app') || hostname.includes('vercel.app')) {
-        return 'https://your-backend-service.onrender.com/api';
+        return 'https://trackmint.onrender.com/api';
       }
     }
     
-    // Default production fallback
-    return '/api';
+    // Default production fallback (use your backend URL)
+    return 'https://trackmint.onrender.com/api';
   }
   
   // Development mode
-  return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+  return 'http://localhost:3000/api';
 };
 
 const baseURL = getBaseURL();
 
-console.log('🌐 API Base URL:', baseURL);
-console.log('🔧 Environment Info:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  DEV: import.meta.env.DEV,
-  PROD: import.meta.env.PROD,
-  MODE: import.meta.env.MODE,
-  hostname: typeof window !== 'undefined' ? window.location.hostname : 'server-side'
-});
+// Safe console logging for build process
+if (typeof window !== 'undefined') {
+  console.log('🌐 API Base URL:', baseURL);
+  console.log('🔧 Environment Info:', {
+    VITE_API_URL: import.meta.env.VITE_API_URL,
+    DEV: import.meta.env.DEV,
+    PROD: import.meta.env.PROD,
+    MODE: import.meta.env.MODE,
+    hostname: window.location.hostname
+  });
+}
 
 const api = axios.create({
   baseURL,
