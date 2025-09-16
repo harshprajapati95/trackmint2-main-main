@@ -1,64 +1,31 @@
 import axios from 'axios';
 
-// Create axios instance with base configuration
-const getBaseURL = () => {
-  // Always prioritize environment variable
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-  
-  // Production hosting environments
+// Smart API URL detection for different environments
+const getApiUrl = () => {
+  // Check if we're in production (deployed)
   if (import.meta.env.PROD) {
-    // Fallback detection for various hosting platforms (only if window exists)
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      
-      // GitHub Codespaces
-      if (hostname.includes('github.dev') || hostname.includes('githubpreview.dev')) {
-        return `https://${hostname.replace('5173', '3000')}/api`;
-      }
-      
-      // Render Static Site
-      if (hostname.includes('onrender.com')) {
-        return 'https://trackmint.onrender.com/api';
-      }
-      
-      // GitHub Pages
-      if (hostname.includes('github.io')) {
-        return 'https://trackmint.onrender.com/api';
-      }
-      
-      // Netlify, Vercel
-      if (hostname.includes('netlify.app') || hostname.includes('vercel.app')) {
-        return 'https://trackmint.onrender.com/api';
-      }
-    }
-    
-    // Default production fallback (use your backend URL)
-    return 'https://trackmint.onrender.com/api';
+    // Production - use environment variable or default backend URL
+    return import.meta.env.VITE_API_URL || 'https://trackmint-backend.onrender.com/api';
   }
   
-  // Development mode
-  return 'http://localhost:3000/api';
+  // Development - use localhost with port 3000 (backend port)
+  return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 };
 
-const baseURL = getBaseURL();
+const baseURL = getApiUrl();
 
-// Safe console logging for build process
-if (typeof window !== 'undefined') {
-  console.log('🌐 API Base URL:', baseURL);
-  console.log('🔧 Environment Info:', {
-    VITE_API_URL: import.meta.env.VITE_API_URL,
-    DEV: import.meta.env.DEV,
-    PROD: import.meta.env.PROD,
-    MODE: import.meta.env.MODE,
-    hostname: window.location.hostname
-  });
-}
+console.log('🌐 API Base URL:', baseURL);
+console.log('🔧 Environment:', import.meta.env.MODE);
+console.log('🔧 Environment Variables:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  PROD: import.meta.env.PROD,
+  DEV: import.meta.env.DEV,
+  MODE: import.meta.env.MODE
+});
 
 const api = axios.create({
   baseURL,
-  timeout: 10000,
+  timeout: 30000, // Increased timeout for Render's potential cold starts
   headers: {
     'Content-Type': 'application/json'
   }

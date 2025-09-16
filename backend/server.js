@@ -1,27 +1,32 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 // Import database connection and routes
-const connectDB = require('./backend/config/database');
-const routes = require('./backend/routes');
-const errorHandler = require('./backend/middleware/errorHandler');
-const { apiLimiter } = require('./backend/middleware/rateLimiter');
+const connectDB = require('./config/database');
+const routes = require('./routes');
+const errorHandler = require('./middleware/errorHandler');
+const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 10000; // Render uses port 10000 by default
 
 // Connect to MongoDB
 connectDB();
 
-// Middleware
-app.use(cors({
+// CORS configuration for production and development
+const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? (process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : ['https://trackmint-frontend.onrender.com']) // Update with your Render frontend URL
-    : true, // Allow all origins in development
-  credentials: true
-}));
+    ? process.env.CORS_ORIGIN || 'https://your-frontend-url.onrender.com'
+    : ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+// Middleware
+app.use(cors(corsOptions));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -33,9 +38,19 @@ app.use('/api', apiLimiter);
 // API Routes
 app.use('/api', routes);
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'TrackMint API is running!',
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Serve static files from the frontend dist directory in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
+  app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
 
   // Handle React Router - send all non-API requests to index.html
   app.get('*', (req, res) => {
@@ -47,7 +62,7 @@ if (process.env.NODE_ENV === 'production') {
       });
     }
     
-    res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html'));
   });
 } else {
   // Development mode - just serve API
@@ -73,8 +88,9 @@ process.on('unhandledRejection', (err, promise) => {
   });
 });
 
-const server = app.listen(port, () => {
+const server = app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 TrackMint server running on port ${port}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 API Health Check: http://localhost:${port}/api/health`);
+  console.log(`🔗 API Health Check: http://localhost:${port}/health`);
+  console.log(`🌐 CORS Origin: ${corsOptions.origin}`);
 });

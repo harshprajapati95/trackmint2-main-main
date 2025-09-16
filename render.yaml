@@ -1,51 +1,41 @@
-# Render Deployment Configuration
+services:
+  # Backend Web Service
+  - type: web
+    name: trackmint-backend
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false # Set this manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: CORS_ORIGIN
+        value: https://trackmint-frontend.onrender.com
 
-## Frontend (Static Site)
-- **Type**: Static Site
-- **Root Directory**: `frontend`
-- **Build Command**: `npm install && npm run build`
-- **Publish Directory**: `dist`
+  # Frontend Static Site
+  - type: static
+    name: trackmint-frontend
+    plan: free
+    region: oregon
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    pullRequestPreviewsEnabled: false
+    envVars:
+      - key: VITE_API_URL
+        value: https://trackmint-backend.onrender.com/api
+      - key: VITE_FINNHUB_API_KEY
+        sync: false # Set this manually in Render dashboard
+      - key: VITE_GEMINI_API_KEY
+        sync: false # Set this manually in Render dashboard
 
-## Backend (Web Service)
-- **Type**: Web Service
-- **Root Directory**: `/` (root)
-- **Build Command**: `npm install`
-- **Start Command**: `npm start`
-- **Port**: `10000` (auto-assigned by Render)
-
-## Environment Variables
-
-### Backend Web Service
-```
-NODE_ENV=production
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/trackmint
-JWT_SECRET=your_production_jwt_secret_key_here
-JWT_EXPIRE=7d
-PORT=10000
-CORS_ORIGIN=https://your-frontend-site.onrender.com
-```
-
-### Frontend Static Site
-```
-VITE_API_URL=https://your-backend-service.onrender.com/api
-VITE_FINNHUB_API_KEY=your_finnhub_api_key
-VITE_GEMINI_API_KEY=your_gemini_api_key
-```
-
-## Deployment Steps
-
-1. **Deploy Backend First**:
-   - Connect GitHub repo to Render
-   - Create Web Service
-   - Set environment variables
-   - Note the backend URL
-
-2. **Deploy Frontend Second**:
-   - Create Static Site on Render
-   - Update VITE_API_URL with backend URL
-   - Set environment variables
-   - Deploy
-
-3. **Update Backend CORS**:
-   - Add frontend URL to CORS_ORIGIN
-   - Redeploy backend service
+# Database (if using Render PostgreSQL - optional)
+# databases:
+#   - name: trackmint-db
+#     plan: free
