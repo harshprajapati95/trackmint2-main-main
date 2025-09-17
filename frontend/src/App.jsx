@@ -54,11 +54,33 @@ function ProtectedAppContent() {
 
   const handleWizardComplete = async () => {
     try {
+      // Validate required wizard data
+      if (!userData.income || (!userData.income.monthly && !userData.income.annual)) {
+        console.error('Missing income data:', userData.income);
+        throw new Error('Income data is required to complete setup');
+      }
+
+      // Calculate monthly income from available data
+      const monthlyIncome = userData.income.monthly || (userData.income.annual ? userData.income.annual / 12 : 0);
+      
+      if (monthlyIncome <= 0) {
+        throw new Error('Valid income amount is required');
+      }
+
+      // Map risk appetite values from wizard to backend enum values
+      const riskAppetiteMapping = {
+        'Conservative': 'conservative',
+        'Balanced': 'moderate',
+        'Aggressive': 'aggressive'
+      };
+      
+      const mappedRiskAppetite = riskAppetiteMapping[userData.riskAppetite] || 'moderate';
+
       // First, update the user profile with wizard data
       const profileData = {
-        monthlyIncome: userData.income?.monthly || 0,
+        monthlyIncome: monthlyIncome,
         budgetRule: userData.budgetRule || '50-30-20',
-        riskAppetite: userData.riskAppetite?.toLowerCase() || 'moderate',
+        riskAppetite: mappedRiskAppetite,
         profileComplete: true
       };
 
@@ -67,14 +89,15 @@ function ProtectedAppContent() {
         profileData.customBudget = userData.customBudget;
       }
 
+      console.log('Updating profile with data:', profileData);
       await updateProfile(profileData);
       
       // Then mark wizard as complete
       dispatch({ type: actions.COMPLETE_WIZARD });
     } catch (error) {
       console.error('Failed to update profile after wizard completion:', error);
-      // Still complete the wizard locally even if profile update fails
-      dispatch({ type: actions.COMPLETE_WIZARD });
+      alert(`Setup failed: ${error.message}. Please try again.`);
+      // Don't complete wizard if there's an error - let user fix the issue
     }
   };
 

@@ -207,6 +207,18 @@ const updateProfile = async (req, res) => {
       }
     });
 
+    // Validate monthlyIncome if provided
+    if (updates.monthlyIncome !== undefined) {
+      const income = parseFloat(updates.monthlyIncome);
+      if (isNaN(income) || income < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Monthly income must be a valid positive number'
+        });
+      }
+      updates.monthlyIncome = income;
+    }
+
     // Check if profile is becoming complete
     const user = await User.findById(req.user.id);
     if (!user.profileComplete) {
@@ -219,6 +231,8 @@ const updateProfile = async (req, res) => {
         updates.profileComplete = true;
       }
     }
+
+    console.log('Updating user profile with:', updates);
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
