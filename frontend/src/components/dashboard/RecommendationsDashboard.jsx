@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TrendingUp, TrendingDown, BarChart3, Target, ArrowRight, ExternalLink, Plus, ChevronDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, BarChart3, Target, ArrowRight, Plus, ChevronDown } from 'lucide-react';
 import { generateRecommendations, calculateBudgetAllocation } from '../../context/WizardContext';
 import { useBudget } from '../../context/BudgetContext';
 
@@ -119,9 +119,6 @@ const RecommendationsDashboard = ({ userData }) => {
                 </div>
               </div>
             </div>
-            <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              <ExternalLink size={16} />
-            </button>
           </div>
         </div>
       ))}

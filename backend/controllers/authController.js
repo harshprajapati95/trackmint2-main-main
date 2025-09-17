@@ -7,10 +7,6 @@ const generateToken = (userId) => {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };
-
-// @desc    Register new user
-// @route   POST /api/auth/register
-// @access  Public
 const register = async (req, res) => {
   try {
     const {
@@ -77,7 +73,6 @@ const register = async (req, res) => {
 
 // @desc    Login user
 // @route   POST /api/auth/login
-// @access  Public
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
