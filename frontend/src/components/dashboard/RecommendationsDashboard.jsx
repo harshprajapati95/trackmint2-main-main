@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TrendingUp, TrendingDown, BarChart3, Target, ArrowRight, Plus, ChevronDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, BarChart3, Target, ArrowRight, Plus, ChevronDown, ExternalLink } from 'lucide-react';
 import { generateRecommendations, calculateBudgetAllocation } from '../../context/WizardContext';
 import { useBudget } from '../../context/BudgetContext';
 
